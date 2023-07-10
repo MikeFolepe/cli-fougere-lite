@@ -21,6 +21,7 @@ type ClientsCommand struct {
 type ProductConfig struct {
 	Client        string               `json:"client" validate:"omitempty"`
 	StorageBucket *cloudstorage.Config `json:"storageBucket" validate:"omitempty,dive"`
+	CloudTasks    *cloudtasks.Config   `json:"cloudTasks" validate:"omitempty,dive"`
 }
 
 func NewClientsCommand() *cobra.Command {
@@ -52,7 +53,17 @@ func (c *ClientsCommand) createClients() {
 				utils.CheckErr(err)
 			}
 		}
+
+		if clientConfig.CloudTasks != nil {
+			utils.CheckErr(cloudtasks.ValidateConfig(clientConfig.CloudTasks))
+			if err := c.cloudTasksClient.Create(clientConfig.CloudTasks); err != nil {
+				utils.CheckErr(err)
+			}
+		}
+
 	}
+
+
 }
 
 func (c *ClientsCommand) initClients() error {
@@ -65,6 +76,11 @@ func (c *ClientsCommand) initClients() error {
 	}
 	c.cloudStorageClient = cloudStorageClient
 
+	cloudTasksClient, err := cloudtasks.NewClient(ctx, options...)
+	if err != nil {
+		return err
+	}
+	c.cloudTasksClient = cloudTasksClient
 	return nil
 
 }
@@ -82,6 +98,11 @@ func (c *ClientsCommand) getConfig() error {
 		storageConfig, err := cloudstorage.GetStorageConfig(clientViper, client)
 		utils.CheckErr(err)
 		config.StorageBucket = storageConfig
+
+		cloudTasksConfig, err := cloudtasks.GetCloudTasksConfig(clientViper, client)
+		utils.CheckErr(err)
+		config.CloudTasks = cloudTasksConfig
+
 		c.clientConfigs = append(c.clientConfigs, config)
 	}
 	return nil
