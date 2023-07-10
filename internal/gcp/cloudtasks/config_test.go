@@ -90,7 +90,5 @@ var _ = Describe("config", func() {
 			err := ValidateConfig(config)
 			Expect(err).Should(MatchError(ContainSubstring("validate failed on the required rule")))
 		})
-
-		// Add more validation tests as per your config rules.
 	})
 })

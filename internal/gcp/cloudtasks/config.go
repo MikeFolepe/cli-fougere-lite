@@ -34,8 +34,7 @@ func GetCloudTasksConfig(viperConfig *viper.Viper, clientName string) (*Config, 
 	}
 
 	for name, queue := range cloudTasksConfig.Queues {
-		queue.Name = strings.Join([]string{clientName, name, queue.ProjectId}, "-")
-
+		queue.Name = fmt.Sprintf("%s/queues/%s", queue.Parent(), strings.Join([]string{clientName, name, queue.ProjectId}, "-"))
 		cloudTasksConfig.Queues[name] = queue
 	}
 	return &cloudTasksConfig, nil

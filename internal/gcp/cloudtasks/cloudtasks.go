@@ -2,9 +2,11 @@ package cloudtasks
 
 import (
 	"context"
-	"strings"
+	"net/http"
+
 	"google.golang.org/api/cloudtasks/v2"
 	"google.golang.org/api/option"
+	"google.golang.org/api/googleapi"
 	"metrio.net/fougere-lite/internal/common"
 	"metrio.net/fougere-lite/internal/utils"
 )
@@ -29,14 +31,15 @@ func (c *Client) Create(config *Config) error {
 		go func(resp chan common.Response, queue Queue) {
 			_, err := c.get(queue.Name)
 			if err != nil {
-				if strings.Contains(err.Error(), "NotFound") {
-					utils.Logger.Debug("[%s] queue not found", queue.Name)
+				if e, ok := err.(*googleapi.Error); ok && e.Code == http.StatusNotFound {
+					utils.Logger.Debug("[%s] bucket not found", queue.Name)
+
 					if err := c.create(queue); err != nil {
 						resp <- common.Response{Err: err}
 						return
 					}
 				} else {
-					utils.Logger.Errorf("[%s] error getting queue: %s", queue.Name, err)
+					utils.Logger.Errorf("[%s] error getting bucket: %s", queue.Name, err)
 					resp <- common.Response{Err: err}
 					return
 				}
@@ -70,7 +73,7 @@ func (c *Client) get(name string) (*cloudtasks.Queue, error) {
 func (c *Client) create(queue Queue) error {
 	utils.Logger.Infof("[%s] creating queue", queue.Name)
 	spec := c.createQueueSpec(queue)
-	_, err := c.cloudTasksService.Projects.Locations.Queues.Create(queue.ProjectId, spec).Do()
+	_, err := c.cloudTasksService.Projects.Locations.Queues.Create(queue.Parent(), spec).Do()
 	if err != nil {
 		utils.Logger.Errorf("[%s] error creating queue: %s", spec.Name, err)
 		return err
@@ -92,7 +95,6 @@ func (c *Client) update(queue Queue) error {
 }
 
 func (c *Client) createQueueSpec(queue Queue) *cloudtasks.Queue {
-	// Fully qualified queue name
 	return &cloudtasks.Queue{
 		Name: queue.Name,
 		RateLimits: &cloudtasks.RateLimits{
