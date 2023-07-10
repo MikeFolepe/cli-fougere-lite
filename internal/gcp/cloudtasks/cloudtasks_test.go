@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"google.golang.org/api/option"
+	"google.golang.org/api/cloudtasks/v2"
 	"metrio.net/fougere-lite/internal/utils"
 )
 
@@ -25,7 +26,7 @@ var _ = Describe("Cloud Tasks client", func() {
 
 	BeforeEach(func() {
 		queue = Queue{
-			Name:       "queue-1",
+			Name:       "projects/project-123/locations/northamerica-northeast1/queues/queue-1",
 			Region:     "northamerica-northeast1",
 			ProjectId:  "project-123",
 			MinBackoff: "1s",
@@ -38,41 +39,57 @@ var _ = Describe("Cloud Tasks client", func() {
 	
 	Describe("Create queue", func() {
 		It("successfully creates the queue", func() {
-
 			mockServerCalls := make(chan utils.MockServerCall, 1)
 			mockServerCalls <- utils.MockServerCall{
 				UrlMatchFunc: func(url string) bool {
-					return strings.HasPrefix(url, "/b?")
+					return strings.Contains(url, "projects/project-123/locations/northamerica-northeast1/queues")
 				},
 				Method: "post",
-				ResponseBody: map[string]string{"status": "OK"}, 
+
+				ResponseBody: &cloudtasks.Queue{
+					Name: "projects/project-123/locations/northamerica-northeast1/queues/queue-1",
+					RateLimits: &cloudtasks.RateLimits{
+						MaxDispatchesPerSecond: 1000,
+						MaxConcurrentDispatches: 100,
+					},
+					RetryConfig: &cloudtasks.RetryConfig{
+						MinBackoff: "1s",
+						MaxBackoff: "10s",
+					},
+				}, 
+				ResponseCode: 200,
+				
 			}
 			mockServer := utils.NewMockServer(mockServerCalls)
 			defer mockServer.Close()
-
+	
 			client := getMockedClient(mockServer.URL)
-
+	
 			err := client.create(queue)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
-	
+
 	Describe("Update queue", func() {
 		It("successfully updates the queue", func() {
 			mockServerCalls := make(chan utils.MockServerCall, 1)
 			mockServerCalls <- utils.MockServerCall{
 				UrlMatchFunc: func(url string) bool {
-					return strings.HasPrefix(url, "/b/patate-23423k?")
+					return strings.Contains(url, "projects/project-123/locations/northamerica-northeast1/queues/queue-1")
 				},
-				Method: "put",
+				Method: "patch",
+				ResponseCode: 200,
 			}
 			mockServer := utils.NewMockServer(mockServerCalls)
 			defer mockServer.Close()
-
+	
 			client := getMockedClient(mockServer.URL)
-
+	
 			err := client.update(queue)
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+	
+	
+	
 })
