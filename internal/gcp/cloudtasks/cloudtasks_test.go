@@ -78,6 +78,18 @@ var _ = Describe("Cloud Tasks client", func() {
 					return strings.Contains(url, "projects/project-123/locations/northamerica-northeast1/queues/queue-1")
 				},
 				Method: "patch",
+
+				ResponseBody: &cloudtasks.Queue{
+					Name: "projects/project-123/locations/northamerica-northeast1/queues/queue-1",
+					RateLimits: &cloudtasks.RateLimits{
+						MaxDispatchesPerSecond: 1000,
+						MaxConcurrentDispatches: 100,
+					},
+					RetryConfig: &cloudtasks.RetryConfig{
+						MinBackoff: "1s",
+						MaxBackoff: "10s",
+					},
+				}, 
 				ResponseCode: 200,
 			}
 			mockServer := utils.NewMockServer(mockServerCalls)
