@@ -8,11 +8,13 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/api/option"
 	"metrio.net/fougere-lite/internal/gcp/cloudstorage"
+	"metrio.net/fougere-lite/internal/gcp/cloudtasks"
 	"metrio.net/fougere-lite/internal/utils"
 )
 
 type ClientsCommand struct {
 	cloudStorageClient *cloudstorage.Client
+	cloudTasksClient   *cloudtasks.Client
 	clientConfigs      []ProductConfig
 }
 

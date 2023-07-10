@@ -3,14 +3,14 @@ clients:
     storageBucket:
       bucket1:
         region: us-central1
-        projectId:  <YOUR-PROJECT-ID>
+        projectId:  fougere-cli-tool
       bucket2:
         region: us-central1
-        projectId: <YOUR-PROJECT-ID>
+        projectId: fougere-cli-tool
     cloudTasks:
       queue1:
         region: us-central1
-        projectId:  <YOUR-PROJECT-ID>
+        projectId:  fougere-cli-tool
         minBackoff: 1s
         maxBackoff: 10s
         maxConcurrentDispatches: 1000
@@ -19,11 +19,11 @@ clients:
     storageBucket:
       bucket3:
         region: us-central1
-        projectId: <YOUR-PROJECT-ID>
+        projectId: fougere-cli-tool
     cloudTasks:
       queue2:
         region: us-central1
-        projectId:  <YOUR-PROJECT-ID>
+        projectId:  fougere-cli-tool
         minBackoff: 2s
         maxBackoff: 10s
         maxConcurrentDispatches: 1000
