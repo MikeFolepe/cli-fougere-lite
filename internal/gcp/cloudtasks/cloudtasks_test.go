@@ -101,7 +101,61 @@ var _ = Describe("Cloud Tasks client", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
+
+	Describe("Get queue", func() {
+		It("successfully gets the queue", func() {
+			mockServerCalls := make(chan utils.MockServerCall, 1)
+			mockServerCalls <- utils.MockServerCall{
+				UrlMatchFunc: func(url string) bool {
+					return strings.Contains(url, "projects/project-123/locations/northamerica-northeast1/queues/queue-1")
+				},
+				Method: "get",
+				ResponseCode: 200,
+			}
+			mockServer := utils.NewMockServer(mockServerCalls)
+			defer mockServer.Close()
 	
+			client := getMockedClient(mockServer.URL)
 	
+			queue, err := client.get(queue.Name)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(queue).ToNot(BeNil())
+		})
+	})
+	
+
+	Describe("New Client", func() {
+		It("should successfully create a new client", func() {
+			mockServerCalls := make(chan utils.MockServerCall, 1)
+			mockServer := utils.NewMockServer(mockServerCalls)
+	
+			defer mockServer.Close()
+
+			client, err := NewClient(context.Background(), option.WithoutAuthentication(), option.WithEndpoint(mockServer.URL))
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(client).ToNot(BeNil())
+		})
+	})
+
+	Describe("Create queue spec", func() {
+		It("should correctly create a queue spec", func() {
+			mockServerCalls := make(chan utils.MockServerCall, 1)
+			mockServer := utils.NewMockServer(mockServerCalls)
+
+			defer mockServer.Close()
+
+			client := getMockedClient(mockServer.URL)
+			spec := client.createQueueSpec(queue)
+
+			Expect(spec).ToNot(BeNil())
+			Expect(spec.Name).To(Equal(queue.Name))
+			Expect(spec.RateLimits.MaxDispatchesPerSecond).To(Equal(queue.MaxDispatchesPerSecond))
+			Expect(spec.RateLimits.MaxConcurrentDispatches).To(Equal(int64(queue.MaxConcurrentDispatches)))
+			Expect(spec.RetryConfig.MinBackoff).To(Equal(queue.MinBackoff))
+			Expect(spec.RetryConfig.MaxBackoff).To(Equal(queue.MaxBackoff))
+		})
+	})
+
 	
 })

@@ -90,5 +90,40 @@ var _ = Describe("config", func() {
 			err := ValidateConfig(config)
 			Expect(err).Should(MatchError(ContainSubstring("validate failed on the required rule")))
 		})
+
+		It("should detect an empty region", func() {
+			config := &Config{
+				Queues: map[string]Queue{
+					"foooo": {
+						Name:       "foooo",
+						ProjectId:  "mock-project",
+						MinBackoff: "100ms",
+						MaxBackoff: "1000ms",
+						MaxConcurrentDispatches: 10,
+						MaxDispatchesPerSecond:  100.0,
+					},
+				},
+			}
+			err := ValidateConfig(config)
+			Expect(err).Should(MatchError(ContainSubstring("validate failed on the required rule")))
+		})
+
+
+		It("should detect an empty project id", func() {
+			config := &Config{
+				Queues: map[string]Queue{
+					"foooo": {
+						Name:       "foooo",
+						Region:    "us-central1",
+						MinBackoff: "100ms",
+						MaxBackoff: "1000ms",
+						MaxConcurrentDispatches: 10,
+						MaxDispatchesPerSecond:  100.0,
+					},
+				},
+			}
+			err := ValidateConfig(config)
+			Expect(err).Should(MatchError(ContainSubstring("validate failed on the required rule")))
+		})
 	})
 })
